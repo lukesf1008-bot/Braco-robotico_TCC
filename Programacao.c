@@ -33,6 +33,11 @@ const int limMin2 = 30, limMax2 = 180; //Base
 const int limMin3 = 10, limMax3 = 80;  //Direita
 const int limMin4 = 0, limMax4 = 135;  //Esquerda
 
+const long longPressDuration = 2000;
+
+int mudou = 0;
+int leituraantiga;
+
 
 
 
@@ -81,13 +86,13 @@ void loop() {
     gravarMovimento();
   }
 
-  if (digitalRead(sensor1) == HIGH){
+  if (digitalRead(sensor1) == LOW){
     delay(200);
     Reproduzir_movimento();
   }
   
+  delay(1000); 
   posicao_inicial();
-  
 }
 
 // ========================= MOVIMENTO =========================
@@ -101,8 +106,15 @@ void Reproduzir_movimento() {
   Serial.print("] = ");
   Serial.println(movimento[i]);
 
+  int g = i%4;
+  if(g == 0){
+    g = 4;
+  }
+
+  
+  
   //reproduz o movimento armazenado no motor especifíco na qual foi gravado. 
-  switch (i%4) {
+  switch (g) {
     case 1:
       servog.write(movimento[i]);
       break;
@@ -110,10 +122,10 @@ void Reproduzir_movimento() {
       servob.write(movimento[i]);
       break;
     case 3:
-      servod.write(movimento[i]);
+      servoe.write(movimento[i]);
       break;
     case 4:
-      servoe.write(movimento[i]);
+      servod.write(movimento[i]);
       break;
   }
 
@@ -137,6 +149,8 @@ void gravarMovimento() {
   //variável de controle para a impressão única das frases l.150
   ultimoCaso = 0;
   
+  leituraantiga = analogRead(pot1);
+  
   //Reseta vetor movimento, a variável de controle e o angulo.
   for (int i = 0; i < 100; i++) {
     movimento[i] = 0;
@@ -145,7 +159,11 @@ void gravarMovimento() {
   contador2 = 0; 
   
   Serial.println("Vetor de movimentos limpo.");
-  int angulo = 0;
+  
+  int angG = 0;
+  int angB = 0;
+  int angD = 0;
+  int angE = 0;
 
   while (gravando) {
      
@@ -173,47 +191,89 @@ void gravarMovimento() {
   ultimoCaso = contador;
   delay(100);
 }
-
+    
+   //Verifica-se o potenciometro, após o inicio da gravação ou do inicio do proximo motor, a posição do potenciometro foi alterado
+   if (abs(analogRead(pot1) - leituraantiga) > 15){
+     mudou = 1;
+   }else {
+    mudou = 0; // Não houve mudança
+}
 
    //Movimenta e armazena determinado angulo para determinado motor.
-    switch (contador) {
-      case 1:
-        angulo = map(analogRead(pot1), 0, 1023, limMin1, limMax1);
-        servog.write(angulo);
-
-        break;
-      case 2:
-        angulo = map(analogRead(pot1), 0, 1023, limMin2, limMax2);
-        servob.write(angulo);
-
-        break;
-      case 3:
-        angulo = map(analogRead(pot1), 0, 1023, limMin3, limMax3);
-        servod.write(angulo);
-
-        break;
-      case 4:
-        angulo = map(analogRead(pot1), 0, 1023, limMin4, limMax4);
-        servoe.write(angulo);
-        break;
+      if(mudou == 1){    
+       switch (contador) {
+          case 1:
+            angG = map(analogRead(pot1), 0, 1023, limMin1, limMax1);
+            servog.write(angG);
+            break;
+      
+          case 2:
+            angB = map(analogRead(pot1), 0, 1023, limMin2, limMax2);
+            servob.write(angB);
+            break;
+      
+          case 3:
+            angE = map(analogRead(pot1), 0, 1023, limMin4, limMax4);
+            servoe.write(angE);
+            break; 
+      
+         case 4:
+            angD = map(analogRead(pot1), 0, 1023, limMin3, limMax3);
+            servod.write(angD);
+            break;
     }
+  }
      
     
     
     if (digitalRead(B1) == HIGH) {
+     
+   
       delay(200);
      //Incrementa contador para contabilizar a passagem para o proximo motor.
       contador2++;
-
-     
+      mudou = 0;
       
-      //Registra o angulo definido na posição equivalente no vetor.
-      movimento[contador2] = angulo; 
-      Serial.print("Registrando movimento[");
-      Serial.print(contador2);
-      Serial.print("] = ");
-      Serial.println(movimento[contador2]);
+     
+     
+     //Salva a variável ângulo especifíco
+     switch (contador) {
+      case 1:
+         movimento[contador2] = angG; 
+         Serial.print("Registrando movimento[");
+         Serial.print(contador2);
+         Serial.print("] = ");
+         Serial.println(movimento[contador2]);
+
+        break;
+      case 2:
+         movimento[contador2] = angB; 
+         Serial.print("Registrando movimento[");
+         Serial.print(contador2);
+         Serial.print("] = ");
+         Serial.println(movimento[contador2]);
+
+        break;
+      case 3:
+         movimento[contador2] = angD; 
+         Serial.print("Registrando movimento[");
+         Serial.print(contador2);
+         Serial.print("] = ");
+         Serial.println(movimento[contador2]);
+
+        break;
+      case 4:
+         movimento[contador2] = angE; 
+         Serial.print("Registrando movimento[");
+         Serial.print(contador2);
+         Serial.print("] = ");
+         Serial.println(movimento[contador2]);
+       
+        break;
+    }      
+            
       contador++;
+      leituraantiga = analogRead(pot1);
      
       //Reseta a variável contador para 1 novamento para continuar o ciclo.
       if (contador > 4) contador = 1;
