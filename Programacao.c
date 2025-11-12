@@ -1,5 +1,4 @@
-#include <Servo.h>
-
+#include <VarSpeedServo.h>
 
 #define pinservog 2
 #define pinservob 4
@@ -21,7 +20,7 @@ bool gravando = false;
 int ultimoCaso = 0;       
 
 
-Servo servog, servob, servod, servoe;
+VarSpeedServo servog, servob, servod, servoe;
 
 //Variavel que armazena as posições iniciais dos servos
 int imotorg, imotorb, imotord, imotore;
@@ -112,20 +111,20 @@ void Reproduzir_movimento() {
   }
 
   
-  
+  int velo = 30;
   //reproduz o movimento armazenado no motor especifíco na qual foi gravado. 
   switch (g) {
     case 1:
-      servog.write(movimento[i]);
+      servog.write(movimento[i], velo, true);
       break;
     case 2:
-      servob.write(movimento[i]);
+      servob.write(movimento[i], velo, true);
       break;
     case 3:
-      servoe.write(movimento[i]);
+      servoe.write(movimento[i], velo, true);
       break;
     case 4:
-      servod.write(movimento[i]);
+      servod.write(movimento[i], velo, true);
       break;
   }
 
@@ -136,10 +135,11 @@ void Reproduzir_movimento() {
 
 // ========================= POSIÇÃO INICIAL =========================
 void posicao_inicial() {
-  servod.write(imotord);
-  servoe.write(imotore);
-  servog.write(imotorg);
-  servob.write(imotorb);
+  int velo = 30;
+  servod.write(imotord, velo, true);
+  servoe.write(imotore, velo, true);
+  servog.write(imotorg, velo, true);
+  servob.write(imotorb, velo, true);
 }
 
 // ========================= GRAVAR MOVIMENTO =========================
