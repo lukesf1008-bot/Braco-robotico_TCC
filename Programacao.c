@@ -35,10 +35,10 @@ unsigned long tempoAtual;
 unsigned long tempoAnterior = 0;
 
 // ================= OBJETOS SERVO E LIMITES =================
-VarSpeedServo servog, servob, servod, servoe;
+VarSpeedServo servog, servob, servoe, servod;
 
-// Array de Ponteiros: {Garra, Base, Direita, Esquerda}
-VarSpeedServo* servos[] = { &servog, &servob, &servod, &servoe }; 
+// Array de Ponteiros: {Garra, Base, Esquerda, Direita}
+VarSpeedServo* servos[] = { &servog, &servob, &servoe, &servod }; 
 
 // Limites dos servos (Garra, Base, Esquerda, Direita)
 const int limites[4][2] = {
@@ -119,7 +119,7 @@ void Gravarmovimento() {
   // Zera o array de índices e o buffer de movimentos
   for(int i = 0; i < MAX_PASSOS_MOTORES; i++) {
     for(int m = 0; m < 4; m++) {
-      movimento[m][i] = -1;
+      movimento[m][i] = 255;
     }
   }
   
