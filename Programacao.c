@@ -21,6 +21,7 @@ int ordem[MAX_ORDEM];
 // ================= VARIÁVEIS DE ESTADO =================
 bool gravando = false;
 bool reproduzindo = false;
+bool mudou = false;
 
 // Variáveis para a Fila Indiana
 int proximo[4] = {0,0,0,0}; // Próximo índice vazio para cada motor (0 a 3)
@@ -29,10 +30,12 @@ int contador = 0;           // Total de passos gravados no vetor ordem[]
 // Outras Variáveis
 int motorSelecionado = 1;
 int leituraantiga;
-int mudou = 0;
+const int limite_histere = 20;
 
 unsigned long tempoAtual;
 unsigned long tempoAnterior = 0;
+
+const int NUM_leituras = 10;
 
 // ================= OBJETOS SERVO E LIMITES =================
 VarSpeedServo servog, servob, servoe, servod;
@@ -58,8 +61,8 @@ void setup() {
 
   // Definição dos botões e sensor.
   pinMode(sensor1, INPUT);
-  pinMode(B1, INPUT);
-  pinMode(B2, INPUT);
+  pinMode(B1, INPUT_PULLUP);
+  pinMode(B2, INPUT_PULLUP);
 
   // Inicialização e Anexo dos servos.
   servog.attach(pinservog);
@@ -68,20 +71,19 @@ void setup() {
   servod.attach(pinservod);
 
   // Inicializa os servos na posição inicial 
-  for (int i = 0; i < 4; i++) {
-    servos[i]->write(posInicial[i]);
-    delay(100);
-  }
+  servog.write(0);
+  servob.write(30);
+  servoe.write(135);
+  servod.write(10);
+  delay(500);
 
   Serial.println(F("Sistema iniciado. Servos prontos!"));
   Serial.println(F("Aguardando comandos..."));
 }
 
 void loop() {
-  tempoAtual = millis();
-
   // Verifica se o Botão B1 foi pressionado e não está gravando.
-  if (digitalRead(B1) == HIGH && !gravando) {
+  if (digitalRead(B1) == LOW && !gravando) {
     delay(200);
     Gravarmovimento();
     tempoAnterior = millis();
@@ -93,6 +95,8 @@ void loop() {
     reproduzir_movimento();
     tempoAnterior = millis();
   }
+
+   tempoAtual = millis();
 
   // Se o braço ficar inativo, volta para a posição inicial após 2 segundos.
   if (tempoAtual - tempoAnterior >= 2000 && !gravando && !reproduzindo) {
@@ -113,9 +117,10 @@ void posicao_inicial() {
 // ========================= MODO GRAVAÇÃO =========================
 void Gravarmovimento() {
   gravando = true;
-  motorSelecionado = 1;
+  motorSelecionado = 0;
   contador = 0; // Zera o contador de passos
-  
+  leituraantiga = lerPotenciometroSuave();
+
   // Zera o array de índices e o buffer de movimentos
   for(int i = 0; i < MAX_PASSOS_MOTORES; i++) {
     for(int m = 0; m < 4; m++) {
@@ -131,13 +136,15 @@ void Gravarmovimento() {
     proximo[i] = 0; // Zera o índice de gravação de cada motor
   }
 
-  leituraantiga = analogRead(pot1);
+  leituraantiga = lerPotenciometroSuave();
 
   Serial.println(F("=== MODO GRAVACAO INICIADO ==="));
   Serial.println(F("1. Use o POT para mover o motor atual."));
   Serial.println(F("2. Clique B2 para TROCAR o motor."));
   Serial.println(F("3. Clique B1 para SALVAR a posicao."));
   Serial.println(F("4. Segure B2 para SAIR e finalizar."));
+  Serial.print(F("Controlando Motor: "));
+  Serial.println(F("GARRA"));
 
   while(gravando) {
     
@@ -145,30 +152,28 @@ void Gravarmovimento() {
     // 1. Controle do Motor via POT
     // -------------------------------------------------
     
-    int leituraAtual = analogRead(pot1);
+    int leituraAtual = lerPotenciometroSuave();
 
-    if (abs(leituraAtual - leituraantiga) > 15) {
-      mudou = 1;
+    int diferenca = abs(leituraAtual - leituraantiga);
+
+    if ( diferenca > limite_histere) {
+      mudou = true;
     } else {
-      mudou = 0; // Não houve mudança
+      mudou = false;
     }
 
-    if(mudou == 1) {
-      // Mapeia e move o servo imediatamente
-      int angulo = map(leituraAtual, 0, 1023, limites[motorSelecionado][0], limites[motorSelecionado][1]);
-      
-      // Atualiza o array angulos[] para ter o último valor conhecido
-      angulos[motorSelecionado] = angulo; 
-      
-      servos[motorSelecionado]->write(angulo);
+    if(mudou) {
+            int angulo = MapearPotenciometro(leituraAtual);
+            angulos[motorSelecionado] = angulo; 
+            servos[motorSelecionado]->write(angulo, 60 , false);
     }
-    leituraantiga = leituraAtual;
+     delay(5); 
 
     // -------------------------------------------------
     // 2. Botão B1: Salvar Movimento
     // -------------------------------------------------
     
-    if(digitalRead(B1) == HIGH) {
+    if(digitalRead(B1) == LOW) {
       delay(200);
 
       if (contador < MAX_ORDEM && proximo[motorSelecionado] < MAX_PASSOS_MOTORES) {
@@ -184,16 +189,17 @@ void Gravarmovimento() {
       } else {
         Serial.println(F("Memoria de passos cheia."));
       }
-      while(digitalRead(B1) == HIGH); // Espera soltar o botão B1
+      while(digitalRead(B1) == LOW); // Espera soltar o botão B1
     }
 
     // -------------------------------------------------
     // 3. Botão B2: Trocar Motor ou Sair
     // -------------------------------------------------
     
-    if (digitalRead(B2) == HIGH) {
+    if (digitalRead(B2) == LOW) {
+      delay(200);
       unsigned long tempoPress = millis();
-      while(digitalRead(B2) == HIGH); // Espera soltar o botão
+      while(digitalRead(B2) == LOW); // Espera soltar o botão
 
       if (millis() - tempoPress > 1000) {
 
@@ -206,6 +212,7 @@ void Gravarmovimento() {
       } else {
 
         // CLIQUE RÁPIDO -> TROCAR MOTOR
+        leituraantiga = lerPotenciometroSuave();;
         motorSelecionado++;
         if (motorSelecionado > 3) motorSelecionado = 0;
 
@@ -242,16 +249,34 @@ void reproduzir_movimento() {
     
     int motor = ordem[i];
     int indiceMovimento = proximo[motor];
-    
+
     // Reproduz o ângulo da coluna dedicada do motor, usando a velocidade 30
     servos[motor]->write(movimento[motor][indiceMovimento], 30, true);
-    
+
     // Incrementa o índice daquele motor
     proximo[motor]++;
   }
 
-  // Volta para o Home e finaliza
+  
   Serial.println(F("Fim da reproducao."));
-  posicao_inicial();
   reproduzindo = false;
+}
+
+int lerPotenciometroSuave() {
+  long soma = 0;
+  
+  for (int i = 0; i < NUM_leituras; i++) {
+    soma += analogRead(pot1);
+    delayMicroseconds(50); 
+  }
+  // Retorna a média das leituras
+  return (int)(soma / NUM_leituras); 
+}
+
+int MapearPotenciometro(int leitura) {
+  int minLimit = limites[motorSelecionado][0]; // Pega o limite mínimo
+  int maxLimit = limites[motorSelecionado][1]; // Pega o limite máximo
+  
+  // Retorna o resultado do mapeamento
+  return map(leitura, 0, 1023, minLimit, maxLimit);
 }
