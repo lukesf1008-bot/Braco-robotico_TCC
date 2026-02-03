@@ -107,7 +107,7 @@ Desenvolvido em C++, estruturado como uma máquina de estados, alternando entre 
 ## Estrutura do Repositório
 
 - Programação Final - MRP.ino – Código-fonte principal do projeto  
-- docs/ – Documentação técnica (manual de uso e TCC)  
+- docs/ – Documentação técnica (manual de uso)  
 - media/ – Imagens e registros do protótipo  
 
 ---
