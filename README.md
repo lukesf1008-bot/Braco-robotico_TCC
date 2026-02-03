@@ -106,7 +106,7 @@ Desenvolvido em C++, estruturado como uma máquina de estados, alternando entre 
 
 ## Estrutura do Repositório
 
-- Braco_Final.ino – Código-fonte principal do projeto  
+- Programação Final - MRP.ino – Código-fonte principal do projeto  
 - docs/ – Documentação técnica (manual de uso e TCC)  
 - media/ – Imagens e registros do protótipo  
 
