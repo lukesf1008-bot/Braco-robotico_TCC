@@ -124,7 +124,7 @@ Desenvolvido em C++, estruturado como uma máquina de estados, alternando entre 
 1. Instale a Arduino IDE  
 2. Adicione a biblioteca VarSpeedServo  
 3. Conecte o Arduino via USB  
-4. Carregue o arquivo Braco_Final.ino  
+4. Carregue o arquivo Programação Final - MRP.ino  
 5. Alimente o sistema com fonte externa adequada  
 6. Realize a calibração inicial antes do uso  
 
