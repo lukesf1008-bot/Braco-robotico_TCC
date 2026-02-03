@@ -6,6 +6,13 @@ O projeto é open-source, de baixo custo e voltado ao aprendizado prático de ro
 
 ---
 
+## Demonstração em Vídeo
+
+▶ Demonstração completa do funcionamento do M.R.P.  
+https://youtu.be/xj1kZEuCuok
+
+---
+
 ## Objetivo do Projeto
 
 O M.R.P. foi desenvolvido com os seguintes objetivos:
