@@ -36,7 +36,7 @@ O acionamento da rotina automática pode ser condicionado a um sensor infraverme
 
 ## Funcionalidades Principais
 
-- Gravação manual de trajetórias (teach-in) sem alteração de código  
+- Gravação de movimentos
 - Reprodução automática de sequências armazenadas  
 - Persistência dos dados na EEPROM  
 - Movimentos suavizados com controle de velocidade dos servomotores  
@@ -57,7 +57,7 @@ Estrutura híbrida composta por peças em MDF e componentes impressos em 3D, pri
 Baseada em um Arduino Uno, com alimentação adequada para os servomotores, evitando quedas de tensão e reinicializações indesejadas do microcontrolador.
 
 ### Firmware
-Desenvolvido em C++, estruturado como uma máquina de estados, alternando entre os modos de stand-by, gravação e reprodução. Utiliza a biblioteca VarSpeedServo para controle suave dos movimentos.
+Desenvolvido em C++, estruturado como uma máquina de estados, alternando entre os modos de gravação e reprodução. Utiliza a biblioteca VarSpeedServo para controle suave dos movimentos.
 
 ---
 
